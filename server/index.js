@@ -1,4 +1,5 @@
 var process = require('process')
+
 // Handle SIGINT
 process.on('SIGINT', () => {
   console.info("SIGINT Received, exiting...")
@@ -14,11 +15,35 @@ process.on('SIGTERM', () => {
 const parser = require('ua-parser-js');
 const { uniqueNamesGenerator, animals, colors } = require('unique-names-generator');
 
+// Allowed origins for WebSocket upgrade handshake
+const ALLOWED_ORIGINS = [
+  'https://velvetdrop.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:8080',
+];
+
 class SnapdropServer {
 
     constructor(port) {
         const WebSocket = require('ws');
-        this._wss = new WebSocket.Server({ port: port });
+
+        this._wss = new WebSocket.Server({
+            port: port,
+            // Verify origin on WebSocket upgrade — blocks unauthorized domains
+            verifyClient: (info, callback) => {
+                const origin = info.origin || info.req.headers.origin;
+
+                // Allow if no origin (e.g. direct WS clients / health checks)
+                // or if origin is in the allowed list
+                if (!origin || ALLOWED_ORIGINS.indexOf(origin) > -1) {
+                    callback(true);
+                } else {
+                    console.warn('Rejected connection from origin:', origin);
+                    callback(false, 403, 'Forbidden');
+                }
+            }
+        });
+
         this._wss.on('connection', (socket, request) => this._onConnection(new Peer(socket, request)));
         this._wss.on('headers', (headers, response) => this._onHeaders(headers, response));
 
@@ -46,15 +71,14 @@ class SnapdropServer {
     _onHeaders(headers, response) {
         if (response.headers.cookie && response.headers.cookie.indexOf('peerid=') > -1) return;
         response.peerId = Peer.uuid();
-        headers.push('Set-Cookie: peerid=' + response.peerId + "; SameSite=Strict; Secure");
+        headers.push('Set-Cookie: peerid=' + response.peerId + "; SameSite=None; Secure");
     }
 
     _onMessage(sender, message) {
-        // Try to parse message 
         try {
             message = JSON.parse(message);
         } catch (e) {
-            return; // TODO: handle malformed JSON
+            return;
         }
 
         switch (message.type) {
@@ -68,10 +92,9 @@ class SnapdropServer {
 
         // relay message to recipient
         if (message.to && this._rooms[sender.ip]) {
-            const recipientId = message.to; // TODO: sanitize
+            const recipientId = message.to;
             const recipient = this._rooms[sender.ip][recipientId];
             delete message.to;
-            // add sender id
             message.sender = sender.id;
             this._send(recipient, message);
             return;
@@ -79,12 +102,10 @@ class SnapdropServer {
     }
 
     _joinRoom(peer) {
-        // if room doesn't exist, create it
         if (!this._rooms[peer.ip]) {
             this._rooms[peer.ip] = {};
         }
 
-        // notify all other peers
         for (const otherPeerId in this._rooms[peer.ip]) {
             const otherPeer = this._rooms[peer.ip][otherPeerId];
             this._send(otherPeer, {
@@ -93,7 +114,6 @@ class SnapdropServer {
             });
         }
 
-        // notify peer about the other peers
         const otherPeers = [];
         for (const otherPeerId in this._rooms[peer.ip]) {
             otherPeers.push(this._rooms[peer.ip][otherPeerId].getInfo());
@@ -104,7 +124,6 @@ class SnapdropServer {
             peers: otherPeers
         });
 
-        // add peer to room
         this._rooms[peer.ip][peer.id] = peer;
     }
 
@@ -112,15 +131,13 @@ class SnapdropServer {
         if (!this._rooms[peer.ip] || !this._rooms[peer.ip][peer.id]) return;
         this._cancelKeepAlive(this._rooms[peer.ip][peer.id]);
 
-        // delete the peer
         delete this._rooms[peer.ip][peer.id];
 
         peer.socket.terminate();
-        //if room is empty, delete the room
+
         if (!Object.keys(this._rooms[peer.ip]).length) {
             delete this._rooms[peer.ip];
         } else {
-            // notify all other peers
             for (const otherPeerId in this._rooms[peer.ip]) {
                 const otherPeer = this._rooms[peer.ip][otherPeerId];
                 this._send(otherPeer, { type: 'peer-left', peerId: peer.id });
@@ -145,9 +162,7 @@ class SnapdropServer {
             this._leaveRoom(peer);
             return;
         }
-
         this._send(peer, { type: 'ping' });
-
         peer.timerId = setTimeout(() => this._keepAlive(peer), timeout);
     }
 
@@ -159,35 +174,27 @@ class SnapdropServer {
 }
 
 
-
 class Peer {
 
     constructor(socket, request) {
-        // set socket
         this.socket = socket;
-
-
-        // set remote ip
         this._setIP(request);
-
-        // set peer id
-        this._setPeerId(request)
-        // is WebRTC supported ?
+        this._setPeerId(request);
         this.rtcSupported = request.url.indexOf('webrtc') > -1;
-        // set name 
         this._setName(request);
-        // for keepalive
         this.timerId = 0;
         this.lastBeat = Date.now();
     }
 
     _setIP(request) {
         if (request.headers['x-forwarded-for']) {
+            // Railway passes real client IP in x-forwarded-for
+            // Take the FIRST entry — that's the real client IP
             this.ip = request.headers['x-forwarded-for'].split(/\s*,\s*/)[0];
         } else {
             this.ip = request.connection.remoteAddress;
         }
-        // IPv4 and IPv6 use different values to refer to localhost
+        // IPv4 and IPv6 localhost normalisation
         if (this.ip == '::1' || this.ip == '::ffff:127.0.0.1') {
             this.ip = '127.0.0.1';
         }
@@ -197,7 +204,11 @@ class Peer {
         if (request.peerId) {
             this.id = request.peerId;
         } else {
-            this.id = request.headers.cookie.replace('peerid=', '');
+            try {
+                this.id = request.headers.cookie.replace('peerid=', '');
+            } catch(e) {
+                this.id = Peer.uuid();
+            }
         }
     }
 
@@ -208,20 +219,19 @@ class Peer {
     _setName(req) {
         let ua = parser(req.headers['user-agent']);
 
-
         let deviceName = '';
-        
+
         if (ua.os && ua.os.name) {
             deviceName = ua.os.name.replace('Mac OS', 'Mac') + ' ';
         }
-        
+
         if (ua.device.model) {
             deviceName += ua.device.model;
         } else {
             deviceName += ua.browser.name;
         }
 
-        if(!deviceName)
+        if (!deviceName)
             deviceName = 'Unknown Device';
 
         const displayName = uniqueNamesGenerator({
@@ -230,7 +240,7 @@ class Peer {
             dictionaries: [colors, animals],
             style: 'capital',
             seed: this.id.hashCode()
-        })
+        });
 
         this.name = {
             model: ua.device.model,
@@ -250,10 +260,8 @@ class Peer {
         }
     }
 
-    // return uuid of form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     static uuid() {
-        let uuid = '',
-            ii;
+        let uuid = '', ii;
         for (ii = 0; ii < 32; ii += 1) {
             switch (ii) {
                 case 8:
@@ -274,16 +282,16 @@ class Peer {
             }
         }
         return uuid;
-    };
+    }
 }
 
 Object.defineProperty(String.prototype, 'hashCode', {
   value: function() {
     var hash = 0, i, chr;
     for (i = 0; i < this.length; i++) {
-      chr   = this.charCodeAt(i);
-      hash  = ((hash << 5) - hash) + chr;
-      hash |= 0; // Convert to 32bit integer
+      chr  = this.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0;
     }
     return hash;
   }
