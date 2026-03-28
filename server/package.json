@@ -1,0 +1,17 @@
+{
+  "name": "velvetdrop-server",
+  "version": "1.0.0",
+  "description": "Signaling server for VelvetDrop - Premium Peer-to-Peer file sharing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "VelvetDrop Team",
+  "license": "ISC",
+  "dependencies": {
+    "ua-parser-js": "^0.7.24",
+    "unique-names-generator": "^4.3.0",
+    "ws": "^7.4.6"
+  }
+}
