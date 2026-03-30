@@ -450,6 +450,66 @@ class Notifications {
   }
 }
 
+class RoomUI {
+  constructor() {
+    this._initRoom();
+    this._renderRoomBar();
+  }
+
+  _initRoom() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let room = urlParams.get("room");
+
+    if (!room) {
+      room = this._generateCode(6);
+      urlParams.set("room", room);
+      const newUrl = window.location.pathname + "?" + urlParams.toString();
+      window.history.replaceState({}, "", newUrl);
+    }
+    this.roomCode = room.toUpperCase();
+  }
+
+  _generateCode(length) {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  _renderRoomBar() {
+    const $bar = document.createElement("div");
+    $bar.id = "roomBar";
+    $bar.innerHTML = `
+              <div class="room-label">ROOM</div>
+              <div class="room-code">${this.roomCode}</div>
+              <button class="share-button" id="shareRoom">Share Link</button>
+          `;
+    document.body.appendChild($bar);
+
+    $bar.querySelector("#shareRoom").onclick = () => this._share();
+  }
+
+  async _share() {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join my VelvetDrop Room",
+          text: "Transfer files securely and elegantly.",
+          url: url,
+        });
+      } catch (err) {
+        console.error("Share failed:", err);
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      Events.fire("notify-user", "Room link copied to clipboard");
+    }
+  }
+}
+
 class NetworkStatusUI {
   constructor() {
     window.addEventListener("offline", (e) => this._showOfflineMessage(), false);
@@ -496,6 +556,7 @@ class VelvetDrop {
       const notifications = new Notifications();
       const networkStatusUI = new NetworkStatusUI();
       const webShareTargetUI = new WebShareTargetUI();
+      const roomUI = new RoomUI();
     });
   }
 }

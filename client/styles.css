@@ -826,3 +826,68 @@ x-peers:empty ~ x-instructions {
 @supports (-ms-ime-align: auto) {
   html, body { overflow: hidden; }
 }
+
+/* ── Room Bar ───────────────────────────────────────────────── */
+
+#roomBar {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  padding: 6px 18px;
+  background: rgba(26, 26, 26, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 999px;
+  z-index: 100;
+  font-family: "DM Sans", sans-serif;
+  gap: 14px;
+  animation: fade-in 0.6s var(--ease-luxury) backwards;
+  animation-delay: 0.8s;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+#roomBar .room-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--ivory-dim);
+  text-transform: uppercase;
+}
+
+#roomBar .room-code {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+
+#roomBar .share-button {
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 10px;
+  padding: 4px 14px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  transition: all var(--dur-fast);
+}
+
+#roomBar .share-button:hover {
+  background: var(--gold-dim);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.2);
+}
+
+@media (max-width: 600px) {
+  #roomBar {
+    top: 70px;
+    padding: 5px 14px;
+    gap: 10px;
+  }
+}

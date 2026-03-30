@@ -20,6 +20,7 @@ const ALLOWED_ORIGINS = [
   'https://velvetdrop.vercel.app',
   'http://localhost:3000',
   'http://localhost:8080',
+  'http://localhost:52495'
 ];
 
 class SnapdropServer {
@@ -91,9 +92,9 @@ class SnapdropServer {
         }
 
         // relay message to recipient
-        if (message.to && this._rooms[sender.ip]) {
+        if (message.to && this._rooms[sender.roomKey]) {
             const recipientId = message.to;
-            const recipient = this._rooms[sender.ip][recipientId];
+            const recipient = this._rooms[sender.roomKey][recipientId];
             delete message.to;
             message.sender = sender.id;
             this._send(recipient, message);
@@ -102,12 +103,12 @@ class SnapdropServer {
     }
 
     _joinRoom(peer) {
-        if (!this._rooms[peer.ip]) {
-            this._rooms[peer.ip] = {};
+        if (!this._rooms[peer.roomKey]) {
+            this._rooms[peer.roomKey] = {};
         }
 
-        for (const otherPeerId in this._rooms[peer.ip]) {
-            const otherPeer = this._rooms[peer.ip][otherPeerId];
+        for (const otherPeerId in this._rooms[peer.roomKey]) {
+            const otherPeer = this._rooms[peer.roomKey][otherPeerId];
             this._send(otherPeer, {
                 type: 'peer-joined',
                 peer: peer.getInfo()
@@ -115,8 +116,8 @@ class SnapdropServer {
         }
 
         const otherPeers = [];
-        for (const otherPeerId in this._rooms[peer.ip]) {
-            otherPeers.push(this._rooms[peer.ip][otherPeerId].getInfo());
+        for (const otherPeerId in this._rooms[peer.roomKey]) {
+            otherPeers.push(this._rooms[peer.roomKey][otherPeerId].getInfo());
         }
 
         this._send(peer, {
@@ -124,22 +125,23 @@ class SnapdropServer {
             peers: otherPeers
         });
 
-        this._rooms[peer.ip][peer.id] = peer;
+        this._rooms[peer.roomKey][peer.id] = peer;
+        console.log(`Peer ${peer.id} joined room ${peer.roomKey}. Total peers in room: ${Object.keys(this._rooms[peer.roomKey]).length}`);
     }
 
     _leaveRoom(peer) {
-        if (!this._rooms[peer.ip] || !this._rooms[peer.ip][peer.id]) return;
-        this._cancelKeepAlive(this._rooms[peer.ip][peer.id]);
+        if (!this._rooms[peer.roomKey] || !this._rooms[peer.roomKey][peer.id]) return;
+        this._cancelKeepAlive(this._rooms[peer.roomKey][peer.id]);
 
-        delete this._rooms[peer.ip][peer.id];
+        delete this._rooms[peer.roomKey][peer.id];
 
         peer.socket.terminate();
 
-        if (!Object.keys(this._rooms[peer.ip]).length) {
-            delete this._rooms[peer.ip];
+        if (!Object.keys(this._rooms[peer.roomKey]).length) {
+            delete this._rooms[peer.roomKey];
         } else {
-            for (const otherPeerId in this._rooms[peer.ip]) {
-                const otherPeer = this._rooms[peer.ip][otherPeerId];
+            for (const otherPeerId in this._rooms[peer.roomKey]) {
+                const otherPeer = this._rooms[peer.roomKey][otherPeerId];
                 this._send(otherPeer, { type: 'peer-left', peerId: peer.id });
             }
         }
@@ -180,10 +182,26 @@ class Peer {
         this.socket = socket;
         this._setIP(request);
         this._setPeerId(request);
+        this._setRoomKey(request);
         this.rtcSupported = request.url.indexOf('webrtc') > -1;
         this._setName(request);
         this.timerId = 0;
         this.lastBeat = Date.now();
+    }
+
+    _setRoomKey(request) {
+        const url = new URL(request.url, 'http://localhost');
+        const roomCode = url.searchParams.get('room');
+        if (roomCode) {
+            this.roomKey = 'room:' + roomCode.toUpperCase();
+        } else {
+            // Fallback to IP subnet (/24 for IPv4)
+            if (this.ip.includes('.')) {
+                this.roomKey = this.ip.split('.').slice(0, 3).join('.');
+            } else {
+                this.roomKey = this.ip; // keep as is for IPv6 or others
+            }
+        }
     }
 
     _setIP(request) {

@@ -63,13 +63,18 @@ class ServerConnection {
     const protocol = location.protocol.startsWith("https") ? "wss" : "ws";
     const webrtc = window.isRtcSupported ? "/webrtc" : "/fallback";
 
+    // Read room code from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get("room");
+    const roomParam = room ? `?room=${room}` : "";
+
     // Use Railway backend in production, localhost in development
     const host =
       location.hostname === "localhost"
         ? location.host
         : "instant-file-sharing-app-production.up.railway.app";
 
-    const url = protocol + "://" + host + "/server" + webrtc;
+    const url = protocol + "://" + host + "/server" + webrtc + roomParam;
     return url;
   }
 
