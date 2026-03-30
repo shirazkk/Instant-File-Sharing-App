@@ -193,14 +193,9 @@ class Peer {
         const url = new URL(request.url, 'http://localhost');
         const roomCode = url.searchParams.get('room');
         if (roomCode) {
-            this.roomKey = 'room:' + roomCode.toUpperCase();
+            this.roomKey = 'room:' + roomCode.toUpperCase().trim();
         } else {
-            // Fallback to IP subnet (/24 for IPv4)
-            if (this.ip.includes('.')) {
-                this.roomKey = this.ip.split('.').slice(0, 3).join('.');
-            } else {
-                this.roomKey = this.ip; // keep as is for IPv6 or others
-            }
+            this.roomKey = 'solo:' + Peer.uuid();
         }
     }
 

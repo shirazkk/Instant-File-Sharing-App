@@ -587,6 +587,7 @@ class WebShareTargetUI {
 
 class VelvetDrop {
   constructor() {
+    const roomUI = new RoomUI(); // Ensure URL has ?room= before websocket connects
     const server = new ServerConnection();
     const peers = new PeersManager(server);
     const peersUI = new PeersUI();
@@ -598,7 +599,6 @@ class VelvetDrop {
       const notifications = new Notifications();
       const networkStatusUI = new NetworkStatusUI();
       const webShareTargetUI = new WebShareTargetUI();
-      const roomUI = new RoomUI();
     });
   }
 }
