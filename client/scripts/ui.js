@@ -25,9 +25,11 @@ class PeersUI {
 
   _onPeerJoined(peer) {
     if ($(peer.id)) return;
+    document.body.classList.add("transitioning");
     const peerUI = new PeerUI(peer);
     $$("x-peers").appendChild(peerUI.$el);
     setTimeout((e) => window.animateBackground(false), 1750);
+    setTimeout(() => document.body.classList.remove("transitioning"), 400);
   }
 
   _onPeers(peers) {
@@ -38,7 +40,12 @@ class PeersUI {
   _onPeerLeft(peerId) {
     const $peer = $(peerId);
     if (!$peer) return;
-    $peer.remove();
+    document.body.classList.add("transitioning");
+    $peer.setAttribute("leaving", 1);
+    setTimeout(() => {
+        $peer.remove();
+        document.body.classList.remove("transitioning");
+    }, 200);
   }
 
   _onFileProgress(progress) {
@@ -203,14 +210,18 @@ class Dialog {
   }
 
   show() {
+    document.body.classList.add("transitioning");
     this.$el.setAttribute("show", 1);
     if (this.$autoFocus) this.$autoFocus.focus();
+    setTimeout(() => document.body.classList.remove("transitioning"), 280);
   }
 
   hide() {
+    document.body.classList.add("transitioning");
     this.$el.removeAttribute("show");
     document.activeElement.blur();
     window.blur();
+    setTimeout(() => document.body.classList.remove("transitioning"), 200);
   }
 }
 
@@ -221,19 +232,50 @@ class ReceiveDialog extends Dialog {
       this._nextFile(e.detail);
       window.blop.play();
     });
-    this._filesQueue = [];
+    this._pendingFiles = [];
+    this._bundleTimer = null;
   }
 
   _nextFile(nextFile) {
-    if (nextFile) this._filesQueue.push(nextFile);
+    if (nextFile) {
+      this._pendingFiles.push(nextFile);
+      if (this._pendingFiles.length === 1) {
+        Events.fire("notify-user", "Receiving files...");
+      }
+    }
+
     if (this._busy) return;
-    this._busy = true;
-    const file = this._filesQueue.shift();
-    this._displayFile(file);
+
+    clearTimeout(this._bundleTimer);
+    this._bundleTimer = setTimeout(() => this._bundleAndDownload(), 1500);
+  }
+
+  async _bundleAndDownload() {
+    const files = [...this._pendingFiles];
+    this._pendingFiles = [];
+    if (files.length === 0) return;
+
+    if (files.length === 1) {
+      this._busy = true;
+      this._displayFile(files[0]);
+    } else {
+      const zip = new JSZip();
+      files.forEach((f) => zip.file(f.name, f.blob));
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const name = "VelvetDrop-" + Date.now() + ".zip";
+
+      const $a = document.createElement("a");
+      $a.href = url;
+      $a.download = name;
+      $a.click();
+
+      Events.fire("notify-user", `${files.length} files saved as ZIP`);
+    }
   }
 
   _dequeueFile() {
-    if (!this._filesQueue.length) {
+    if (!this._pendingFiles.length) {
       this._busy = false;
       return;
     }
@@ -388,7 +430,7 @@ class Notifications {
   }
 
   _notify(message, body) {
-    const config = { body: body, icon: "/images/logo_transparent_128x128.png" };
+    const config = { body: body, icon: "images/android-chrome-192x192.png" };
     let notification;
     try {
       notification = new Notification(message, config);
@@ -616,22 +658,18 @@ Events.on("load", () => {
     // Normalised distance from centre (0 = inner, 1 = outer)
     const t = radius / Math.max(w, h);
 
-    // Alternate between a warm-gold tint and a cool-white tint
-    // so rings feel layered rather than uniform
-    const isGoldRing = Math.round(t * 10) % 2 === 0;
+    const isEvenRing = Math.round(t * 10) % 2 === 0;
 
-    if (isGoldRing) {
-      // Gold ring: rgba(201, 168, 76, opacity)
+    if (isEvenRing) {
       const opacity = 0.055 * (1 - t * 0.6);
-      ctx.strokeStyle = `rgba(201,168,76,${opacity.toFixed(3)})`;
+      ctx.strokeStyle = `rgba(26,35,126,${opacity.toFixed(3)})`;
     } else {
-      // Ivory ring: rgba(240, 236, 228, opacity)
       const opacity = 0.03 * (1 - t * 0.7);
-      ctx.strokeStyle = `rgba(240,236,228,${opacity.toFixed(3)})`;
+      ctx.strokeStyle = `rgba(92,107,192,${opacity.toFixed(3)})`;
     }
 
     ctx.arc(x0, y0, radius, 0, 2 * Math.PI);
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1;
     ctx.stroke();
   }
 
@@ -639,10 +677,10 @@ Events.on("load", () => {
 
   function drawCircles() {
     ctx.clearRect(0, 0, w, h);
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
       drawCircle(dw * i + (step % dw));
     }
-    step += 1;
+    step += 0.6;
   }
 
   let loading = true;

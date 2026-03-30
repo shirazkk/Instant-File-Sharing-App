@@ -25,17 +25,19 @@
     <meta name="twitter:description" content="A premium file sharing experience, refined for elegance and speed. Private, secure, and lightning fast." />
     <meta name="og:description" content="A premium file sharing experience, refined for elegance and speed. Private, secure, and lightning fast." />
     <!-- Icons -->
-    <link rel="icon" sizes="96x96" href="images/favicon-96x96.png" />
-    <link rel="shortcut icon" href="images/favicon-96x96.png" />
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-    <meta name="msapplication-TileImage" content="images/mstile-150x150.png" />
-    <link rel="fluid-icon" type="image/png" href="images/android-chrome-192x192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+    
+    <meta name="msapplication-TileImage" content="images/android-chrome-192x192.png" />
+    <link rel="fluid-icon" type="image/png" href="images/android-chrome-512x512.png" />
     <meta name="twitter:image" content="https://snapdrop.net/images/twitter-stream.jpg" />
     <meta property="og:image" content="https://snapdrop.net/images/twitter-stream.jpg" />
     <!-- Google Fonts — loaded here so they're available before first paint -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <!-- Resources -->
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="manifest" href="manifest.json" />
@@ -43,9 +45,7 @@
 
   <body translate="no">
     <header class="row-reverse">
-      <a href="#about" class="icon-button" title="About VelvetDrop">
-        <svg class="icon"><use xlink:href="#info-outline" /></svg>
-      </a>
+      <span id="brand">VELVETDROP</span>
       <a href="#" id="notification" class="icon-button" title="Enable Notifications" hidden>
         <svg class="icon"><use xlink:href="#notifications" /></svg>
       </a>
@@ -67,7 +67,7 @@
 
     <!-- Footer -->
     <footer class="column">
-      <svg class="icon logo"><use xlink:href="#wifi-tethering" /></svg>
+      <img src="images/velvent-logo.png" class="icon logo" alt="VelvetDrop Logo" />
       <div id="displayName" placeholder="The easiest way to transfer data across devices"></div>
       <!-- Uppercase tracking fits the luxury body2 style -->
       <div class="font-body2">Discoverable on this network</div>
@@ -138,39 +138,26 @@
       <x-toast class="row" shadow="1" id="toast">Transfer Complete</x-toast>
     </div>
 
-    <!-- About Page -->
-    <x-about id="about" class="full center column">
-      <section class="center column fade-in">
-        <header class="row-reverse">
-          <a href="#" class="close icon-button">
-            <svg class="icon"><use xlink:href="#close" /></svg>
-          </a>
-        </header>
-        <svg class="icon logo"><use xlink:href="#wifi-tethering" /></svg>
-        <h1>VelvetDrop</h1>
-        <div class="font-subheading">A premium file sharing experience, refined for elegance and speed.</div>
-        <div class="row">
-          <a class="icon-button" target="_blank" href="https://github.com/RobinLinus/snapdrop" title="VelvetDrop on Github" rel="noreferrer">
-            <svg class="icon"><use xlink:href="#github" /></svg>
-          </a>
-          <a class="icon-button" target="_blank" href="https://www.paypal.com/donate?hosted_button_id=FTP9DXUR7LA7Q" title="Help cover the server costs!" rel="noreferrer">
-            <svg class="icon"><use xlink:href="#monetarization" /></svg>
-          </a>
-          <a class="icon-button" target="_blank" href="https://twitter.com/intent/tweet?text=https://snapdrop.net%20by%20@robin_linus%20&" title="Tweet about VelvetDrop" rel="noreferrer">
-            <svg class="icon"><use xlink:href="#twitter" /></svg>
-          </a>
-          <a class="icon-button" target="_blank" href="https://github.com/RobinLinus/snapdrop/blob/master/docs/faq.md" title="Frequently asked questions" rel="noreferrer">
-            <svg class="icon"><use xlink:href="#help-outline" /></svg>
-          </a>
-        </div>
-      </section>
-      <x-background></x-background>
-    </x-about>
+
 
     <!-- SVG Icon Library -->
     <svg style="display: none">
-      <symbol id="wifi-tethering" viewBox="0 0 24 24">
-        <path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 2c0-3.31-2.69-6-6-6s-6 2.69-6 6c0 2.22 1.21 4.15 3 5.19l1-1.74c-1.19-.7-2-1.97-2-3.45 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.48-.81 2.75-2 3.45l1 1.74c1.79-1.04 3-2.97 3-5.19zM12 3C6.48 3 2 7.48 2 13c0 3.7 2.01 6.92 4.99 8.65l1-1.73C5.61 18.53 4 15.96 4 13c0-4.42 3.58-8 8-8s8 3.58 8 8c0 2.96-1.61 5.53-4 6.92l1 1.73c2.99-1.73 5-4.95 5-8.65 0-5.52-4.48-10-10-10z"></path>
+      <defs>
+        <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color: #c9a84c; stop-opacity: 1" />
+          <stop offset="100%" style="stop-color: #e8c97a; stop-opacity: 1" />
+        </linearGradient>
+      </defs>
+      <symbol id="velvetdrop-logo" viewBox="0 0 24 24">
+        <!-- Teardrop Shape -->
+        <path fill="url(#gold-gradient)" d="M12,2.1c-1.1,0-2.1,0.5-2.8,1.3c-2.4,2.7-5.2,6.5-5.2,10.1c0,4.4,3.6,8,8,8c4.4,0,8-3.6,8-8
+            c0-3.6-2.8-7.4-5.2-10.1C14.1,2.6,13.1,2.1,12,2.1z" />
+        <!-- Soft Velvet Fabric Folds (overlaid subtle paths) -->
+        <path opacity="0.3" fill="#0a0a0a" d="M12,21.5c-4.4,0-8-3.6-8-8c0-2,0.9-4.2,2.2-6.3c1.3,2.1,2.2,4.3,2.2,6.3
+            C8.4,17.9,10,21.5,12,21.5z" />
+        <path opacity="0.2" fill="#ffffff" d="M12,21.5c2.1,0,4.4-3.6,3.6-8c-0.8-4.4-3.6-8-3.6-8s2.8,3.6,3.6,8
+            C16.4,17.9,14.1,21.5,12,21.5z" />
+        <path opacity="0.15" fill="#0a0a0a" d="M12,21.5c-4.4,0-2.4-5.6-3.6-8c1.2,2.4-0.8,8,3.6,8z" />
       </symbol>
       <symbol id="desktop-mac" viewBox="0 0 24 24">
         <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"></path>
@@ -211,6 +198,7 @@
     </svg>
 
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="scripts/network.js"></script>
     <script src="scripts/ui.js"></script>
     <script src="scripts/clipboard.js" async></script>
