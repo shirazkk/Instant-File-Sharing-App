@@ -56,7 +56,7 @@ class PeersUI {
   }
 
   _clearPeers() {
-    const $peers = ($$("x-peers").innerHTML = "");
+    $$("x-peers").innerHTML = "";
   }
 
   _onPaste(e) {
@@ -80,7 +80,7 @@ class PeerUI {
     return `
             <label class="column center" title="Click to send files or right click to send a text">
                 <input type="file" multiple>
-                <x-icon shadow="1">
+                <x-icon>
                     <svg class="icon"><use xlink:href="#"/></svg>
                 </x-icon>
                 <div class="progress">
@@ -88,8 +88,8 @@ class PeerUI {
                   <div class="circle right"></div>
                 </div>
                 <div class="name font-subheading"></div>
-                <div class="device-name font-body2"></div>
-                <div class="status font-body2"></div>
+                <div class="device-name"></div>
+                <div class="status"></div>
             </label>`;
   }
 
@@ -375,11 +375,16 @@ class ReceiveTextDialog extends Dialog {
     this.$text.innerHTML = "";
     const text = e.text;
     if (isURL(text)) {
-      const $a = document.createElement("a");
-      $a.href = text;
-      $a.target = "_blank";
-      $a.textContent = text;
-      this.$text.appendChild($a);
+      // Block javascript: and data: protocol URLs to prevent XSS
+      if (/^(javascript|data):/i.test(text.trim())) {
+        this.$text.textContent = text;
+      } else {
+        const $a = document.createElement("a");
+        $a.href = text;
+        $a.target = "_blank";
+        $a.textContent = text;
+        this.$text.appendChild($a);
+      }
     } else {
       this.$text.textContent = text;
     }
@@ -524,7 +529,7 @@ class RoomUI {
     const $bar = document.createElement("div");
     $bar.id = "roomBar";
     $bar.innerHTML = `
-              <div class="room-label">ROOM</div>
+              <div class="room-label">Room</div>
               <div class="room-code">${this.roomCode}</div>
               <button class="share-button" id="shareRoom">Share Link</button>
           `;
@@ -625,7 +630,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
   }
 });
 
-// ─── Background Animation — Gold & Obsidian luxury rings ───────────────────
+// ─── Background Animation — Warm ambient rings ─────────────────────────────
 Events.on("load", () => {
   let c = document.createElement("canvas");
   document.body.appendChild(c);
@@ -635,6 +640,7 @@ Events.on("load", () => {
   style.zIndex = -1;
   style.top = 0;
   style.left = 0;
+  style.pointerEvents = "none";
   let ctx = c.getContext("2d");
   let x0, y0, w, h, dw;
 
@@ -654,18 +660,15 @@ Events.on("load", () => {
 
   function drawCircle(radius) {
     ctx.beginPath();
-
-    // Normalised distance from centre (0 = inner, 1 = outer)
     const t = radius / Math.max(w, h);
-
     const isEvenRing = Math.round(t * 10) % 2 === 0;
 
     if (isEvenRing) {
-      const opacity = 0.055 * (1 - t * 0.6);
-      ctx.strokeStyle = `rgba(26,35,126,${opacity.toFixed(3)})`;
+      const opacity = 0.04 * (1 - t * 0.6);
+      ctx.strokeStyle = `rgba(200,184,138,${opacity.toFixed(3)})`;
     } else {
-      const opacity = 0.03 * (1 - t * 0.7);
-      ctx.strokeStyle = `rgba(92,107,192,${opacity.toFixed(3)})`;
+      const opacity = 0.025 * (1 - t * 0.7);
+      ctx.strokeStyle = `rgba(180,168,130,${opacity.toFixed(3)})`;
     }
 
     ctx.arc(x0, y0, radius, 0, 2 * Math.PI);
@@ -680,7 +683,7 @@ Events.on("load", () => {
     for (let i = 0; i < 12; i++) {
       drawCircle(dw * i + (step % dw));
     }
-    step += 0.6;
+    step += 0.4;
   }
 
   let loading = true;

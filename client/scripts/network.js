@@ -413,7 +413,7 @@ class PeersManager {
       if (window.isRtcSupported && peer.rtcSupported) {
         this.peers[peer.id] = new RTCPeer(this._server, peer.id);
       } else {
-        this.peers[peer.id] = new WSPeer(this._server, peer.id);
+        Events.fire("notify-user", "Connection failed: Your browser doesn't support peer-to-peer transfers. Please use a modern browser.");
       }
     });
   }
@@ -433,17 +433,13 @@ class PeersManager {
   _onPeerLeft(peerId) {
     const peer = this.peers[peerId];
     delete this.peers[peerId];
-    if (!peer || !peer._peer) return;
-    peer._peer.close();
+    if (!peer) return;
+    if (peer._conn) {
+      peer._conn.close();
+    }
   }
 }
 
-class WSPeer {
-  _send(message) {
-    message.to = this._peerId;
-    this._server.send(message);
-  }
-}
 
 class FileChunker {
   constructor(file, onChunk, onPartitionEnd) {

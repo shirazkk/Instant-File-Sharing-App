@@ -22,9 +22,9 @@
         "type": "image/png",
         "purpose": "maskable"
     }],
-    "background_color": "#0a0a0a",
+    "background_color": "#0f0e0c",
     "display": "minimal-ui",
-    "theme_color": "#c9a84c",
+    "theme_color": "#1a1814",
     "share_target": {
         "method":"GET",
         "action": "/?share_target",

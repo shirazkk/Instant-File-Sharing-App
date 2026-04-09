@@ -14,6 +14,17 @@ process.on('SIGTERM', () => {
 
 const parser = require('ua-parser-js');
 const { uniqueNamesGenerator, animals, colors } = require('unique-names-generator');
+const WebSocket = require('ws');
+
+function hashCode(str) {
+    var hash = 0, i, chr;
+    for (i = 0; i < str.length; i++) {
+        chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0;
+    }
+    return hash;
+}
 
 // Allowed origins for WebSocket upgrade handshake
 const ALLOWED_ORIGINS = [
@@ -23,20 +34,19 @@ const ALLOWED_ORIGINS = [
   'http://localhost:52495'
 ];
 
-class SnapdropServer {
+class VelvetDropServer {
 
     constructor(port) {
-        const WebSocket = require('ws');
-
         this._wss = new WebSocket.Server({
             port: port,
             // Verify origin on WebSocket upgrade — blocks unauthorized domains
             verifyClient: (info, callback) => {
                 const origin = info.origin || info.req.headers.origin;
 
-                // Allow if no origin (e.g. direct WS clients / health checks)
-                // or if origin is in the allowed list
-                if (!origin || ALLOWED_ORIGINS.indexOf(origin) > -1) {
+                // In production, require origin header to block non-browser clients
+                // In development, allow missing origin for health checks / direct WS testing
+                const isProduction = process.env.NODE_ENV === 'production';
+                if ((!isProduction && !origin) || ALLOWED_ORIGINS.indexOf(origin) > -1) {
                     callback(true);
                 } else {
                     console.warn('Rejected connection from origin:', origin);
@@ -50,7 +60,7 @@ class SnapdropServer {
 
         this._rooms = {};
 
-        console.log('Snapdrop is running on port', port);
+        console.log('Server is running on port', port);
     }
 
     _onConnection(peer) {
@@ -76,11 +86,22 @@ class SnapdropServer {
     }
 
     _onMessage(sender, message) {
+        // Reject oversized messages (64 KB limit)
+        if (message.length > 65536) return;
+
         try {
             message = JSON.parse(message);
         } catch (e) {
             return;
         }
+
+        // Validate message type against known set
+        const VALID_TYPES = ['disconnect', 'pong', 'signal', 'transfer-complete',
+                             'header', 'partition', 'partition-received', 'progress', 'text'];
+        if (!message.type || VALID_TYPES.indexOf(message.type) === -1) return;
+
+        // Validate recipient format if present
+        if (message.to && (typeof message.to !== 'string' || message.to.length > 36)) return;
 
         switch (message.type) {
             case 'disconnect':
@@ -149,9 +170,11 @@ class SnapdropServer {
 
     _send(peer, message) {
         if (!peer) return;
-        if (this._wss.readyState !== this._wss.OPEN) return;
+        if (peer.socket.readyState !== WebSocket.OPEN) return;
         message = JSON.stringify(message);
-        peer.socket.send(message, error => '');
+        peer.socket.send(message, error => {
+            if (error) console.error('Send error to peer', peer.id, ':', error);
+        });
     }
 
     _keepAlive(peer) {
@@ -218,7 +241,9 @@ class Peer {
             this.id = request.peerId;
         } else {
             try {
-                this.id = request.headers.cookie.replace('peerid=', '');
+                const cookies = request.headers.cookie.split(';');
+                const peerCookie = cookies.find(c => c.trim().startsWith('peerid='));
+                this.id = peerCookie ? peerCookie.trim().substring('peerid='.length) : Peer.uuid();
             } catch(e) {
                 this.id = Peer.uuid();
             }
@@ -252,7 +277,7 @@ class Peer {
             separator: ' ',
             dictionaries: [colors, animals],
             style: 'capital',
-            seed: this.id.hashCode()
+            seed: hashCode(this.id)
         });
 
         this.name = {
@@ -298,16 +323,4 @@ class Peer {
     }
 }
 
-Object.defineProperty(String.prototype, 'hashCode', {
-  value: function() {
-    var hash = 0, i, chr;
-    for (i = 0; i < this.length; i++) {
-      chr  = this.charCodeAt(i);
-      hash = ((hash << 5) - hash) + chr;
-      hash |= 0;
-    }
-    return hash;
-  }
-});
-
-const server = new SnapdropServer(process.env.PORT || 3000);
+const server = new VelvetDropServer(process.env.PORT || 3000);

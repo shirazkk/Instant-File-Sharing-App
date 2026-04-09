@@ -1,4 +1,4 @@
-var CACHE_NAME = 'snapdrop-cache-v2';
+var CACHE_NAME = 'velvetdrop-cache-v1';
 var urlsToCache = [
   'index.html',
   './',
@@ -7,7 +7,7 @@ var urlsToCache = [
   'scripts/ui.js',
   'scripts/clipboard.js',
   'sounds/blop.mp3',
-  'images/favicon-96x96.png'
+  'images/favicon-32x32.png'
 ];
 
 self.addEventListener('install', function(event) {

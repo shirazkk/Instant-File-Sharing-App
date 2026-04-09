@@ -3,99 +3,119 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <!-- Web App Config -->
     <title>VelvetDrop | Premium Peer-to-Peer File Sharing</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <!-- Updated theme color to match gold accent -->
-    <meta name="theme-color" content="#c9a84c" />
-    <!-- Force dark color scheme -->
+    <meta name="theme-color" content="#1a1814" />
     <meta name="color-scheme" content="dark" />
     <meta name="apple-mobile-web-app-capable" content="no" />
     <meta name="apple-mobile-web-app-title" content="VelvetDrop" />
-    <!-- Descriptions -->
     <meta name="description" content="A premium file sharing experience, refined for elegance and speed. Private, secure, and lightning fast." />
     <meta name="keywords" content="File, Transfer, Share, Peer2Peer, Premium, Luxury" />
     <meta name="author" content="VelvetDrop Team" />
     <meta property="og:title" content="VelvetDrop" />
     <meta property="og:type" content="article" />
-    <meta property="og:url" content="https://snapdrop.net/" />
+    <meta property="og:url" content="https://velvetdrop.vercel.app/" />
     <meta property="og:author" content="VelvetDrop Team" />
     <meta name="twitter:author" content="@VelvetDrop" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:description" content="A premium file sharing experience, refined for elegance and speed. Private, secure, and lightning fast." />
     <meta name="og:description" content="A premium file sharing experience, refined for elegance and speed. Private, secure, and lightning fast." />
-    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
     <link rel="shortcut icon" href="images/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
-    
     <meta name="msapplication-TileImage" content="images/android-chrome-192x192.png" />
     <link rel="fluid-icon" type="image/png" href="images/android-chrome-512x512.png" />
-    <meta name="twitter:image" content="https://snapdrop.net/images/twitter-stream.jpg" />
-    <meta property="og:image" content="https://snapdrop.net/images/twitter-stream.jpg" />
-    <!-- Google Fonts — loaded here so they're available before first paint -->
+    <meta name="twitter:image" content="https://velvetdrop.vercel.app/images/android-chrome-512x512.png" />
+    <meta property="og:image" content="https://velvetdrop.vercel.app/images/android-chrome-512x512.png" />
+
+    <!-- Fonts: Instrument Serif (display) + DM Sans (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <!-- Resources -->
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="manifest" href="manifest.json" />
   </head>
 
   <body translate="no">
-    <header class="row-reverse">
-      <span id="brand">VELVETDROP</span>
-      <a href="#" id="notification" class="icon-button" title="Enable Notifications" hidden>
-        <svg class="icon"><use xlink:href="#notifications" /></svg>
-      </a>
-      <a href="#" id="install" class="icon-button" title="Install VelvetDrop" hidden>
-        <svg class="icon"><use xlink:href="#homescreen" /></svg>
-      </a>
+
+    <!-- ─── Top Bar ─── -->
+    <header>
+      <div class="header-left">
+        <span class="brand-mark">V</span>
+        <span class="brand-name">VelvetDrop</span>
+      </div>
+      <div class="header-right">
+        <a href="#" id="notification" class="header-action" title="Enable Notifications" hidden>
+          <svg class="icon"><use xlink:href="#notifications" /></svg>
+        </a>
+        <a href="#" id="install" class="header-action" title="Install VelvetDrop" hidden>
+          <svg class="icon"><use xlink:href="#homescreen" /></svg>
+        </a>
+      </div>
     </header>
 
-    <!-- Peers -->
-    <x-peers class="center"></x-peers>
-    <x-no-peers>
-      <!-- Italic serif feels more editorial than a plain h2 -->
-      <h2>Open VelvetDrop on other devices<br>to send files</h2>
-    </x-no-peers>
-    <x-instructions
-      desktop="Click to send files or right click to send a message"
-      mobile="Tap to send files or long tap to send a message"
-    ></x-instructions>
+    <!-- ─── Main Stage ─── -->
+    <main>
+      <!-- Room Pill (rendered by JS) -->
 
-    <!-- Footer -->
-    <footer class="column">
-      <img src="images/velvent-logo.png" class="icon logo" alt="VelvetDrop Logo" />
-      <div id="displayName" placeholder="The easiest way to transfer data across devices"></div>
-      <!-- Uppercase tracking fits the luxury body2 style -->
-      <div class="font-body2">Discoverable on this network</div>
+      <!-- Peer Grid -->
+      <x-peers class="center"></x-peers>
+
+      <!-- Empty State -->
+      <x-no-peers>
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="27" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" opacity="0.3"/>
+              <path d="M28 18v12M22 24l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+              <path d="M20 32h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+              <path d="M22 36h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+            </svg>
+          </div>
+          <h2>Open VelvetDrop on another device</h2>
+          <p class="empty-sub">Join the same room to start sharing files instantly</p>
+        </div>
+      </x-no-peers>
+
+      <x-instructions
+        desktop="Click to send files or right click to send a message"
+        mobile="Tap to send files or long tap to send a message"
+      ></x-instructions>
+    </main>
+
+    <!-- ─── Footer ─── -->
+    <footer>
+      <div class="footer-inner">
+        <div id="displayName" placeholder="The easiest way to transfer data across devices"></div>
+        <div class="footer-sub">Discoverable on this network</div>
+      </div>
     </footer>
 
-    <!-- Receive Dialog -->
+    <!-- ─── Receive File Dialog ─── -->
     <x-dialog id="receiveDialog">
       <x-background class="full center">
         <x-paper shadow="2">
           <h3>File Received</h3>
           <div class="font-subheading" id="fileName">Filename</div>
-          <div class="font-body2" id="fileSize"></div>
+          <div class="file-meta" id="fileSize"></div>
           <div class="preview" style="visibility: hidden">
             <img id="img-preview" src="" alt="Preview" />
           </div>
-          <div class="row">
+          <div class="dialog-option">
             <label for="autoDownload" class="grow">Ask to save each file before downloading</label>
             <input type="checkbox" id="autoDownload" checked />
           </div>
-          <div class="row-reverse">
-            <a class="button" close id="download" title="Download File" autofocus>Save</a>
-            <button class="button" close>Ignore</button>
+          <div class="dialog-actions">
+            <button class="btn btn-ghost" close>Ignore</button>
+            <a class="btn btn-primary" close id="download" title="Download File" autofocus>Save</a>
           </div>
         </x-paper>
       </x-background>
     </x-dialog>
 
-    <!-- Send Text Dialog -->
+    <!-- ─── Send Text Dialog ─── -->
     <x-dialog id="sendTextDialog">
       <form action="#">
         <x-background class="full center">
@@ -105,42 +125,40 @@
               id="textInput"
               class="textarea"
               role="textbox"
-              placeholder="Type your message…"
+              placeholder="Type your message..."
               autocomplete="off"
               autofocus
               contenteditable
             ></div>
-            <div class="row-reverse">
-              <button class="button" type="submit" close>Send</button>
-              <a class="button" close>Cancel</a>
+            <div class="dialog-actions">
+              <a class="btn btn-ghost" close>Cancel</a>
+              <button class="btn btn-primary" type="submit" close>Send</button>
             </div>
           </x-paper>
         </x-background>
       </form>
     </x-dialog>
 
-    <!-- Receive Text Dialog -->
+    <!-- ─── Receive Text Dialog ─── -->
     <x-dialog id="receiveTextDialog">
       <x-background class="full center">
         <x-paper shadow="2">
           <h3>Message Received</h3>
           <div class="font-subheading" id="text"></div>
-          <div class="row-reverse">
-            <button class="button" id="copy" close autofocus>Copy</button>
-            <button class="button" close>Close</button>
+          <div class="dialog-actions">
+            <button class="btn btn-ghost" close>Close</button>
+            <button class="btn btn-primary" id="copy" close autofocus>Copy</button>
           </div>
         </x-paper>
       </x-background>
     </x-dialog>
 
-    <!-- Toast -->
+    <!-- ─── Toast ─── -->
     <div class="toast-container full center">
       <x-toast class="row" shadow="1" id="toast">Transfer Complete</x-toast>
     </div>
 
-
-
-    <!-- SVG Icon Library -->
+    <!-- ─── SVG Icon Library ─── -->
     <svg style="display: none">
       <defs>
         <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -149,10 +167,8 @@
         </linearGradient>
       </defs>
       <symbol id="velvetdrop-logo" viewBox="0 0 24 24">
-        <!-- Teardrop Shape -->
         <path fill="url(#gold-gradient)" d="M12,2.1c-1.1,0-2.1,0.5-2.8,1.3c-2.4,2.7-5.2,6.5-5.2,10.1c0,4.4,3.6,8,8,8c4.4,0,8-3.6,8-8
             c0-3.6-2.8-7.4-5.2-10.1C14.1,2.6,13.1,2.1,12,2.1z" />
-        <!-- Soft Velvet Fabric Folds (overlaid subtle paths) -->
         <path opacity="0.3" fill="#0a0a0a" d="M12,21.5c-4.4,0-8-3.6-8-8c0-2,0.9-4.2,2.2-6.3c1.3,2.1,2.2,4.3,2.2,6.3
             C8.4,17.9,10,21.5,12,21.5z" />
         <path opacity="0.2" fill="#ffffff" d="M12,21.5c2.1,0,4.4-3.6,3.6-8c-0.8-4.4-3.6-8-3.6-8s2.8,3.6,3.6,8
@@ -202,12 +218,14 @@
     <script src="scripts/network.js"></script>
     <script src="scripts/ui.js"></script>
     <script src="scripts/clipboard.js" async></script>
+
     <!-- Sounds -->
     <audio id="blop" autobuffer="true">
       <source src="sounds/blop.mp3" type="audio/mpeg" />
       <source src="sounds/blop.ogg" type="audio/ogg" />
     </audio>
-    <!-- no script -->
+
+    <!-- No Script -->
     <noscript>
       <x-noscript class="full center column">
         <h1>Enable JavaScript</h1>
@@ -215,11 +233,10 @@
       </x-noscript>
       <style>
         x-noscript {
-          background: #0a0a0a;
-          color: #c9a84c;
+          background: #1a1814;
+          color: #c8b88a;
           z-index: 2;
         }
-        a[href="#info"] { color: #c9a84c; }
       </style>
     </noscript>
   </body>
